@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import tgSdk from '@twa-dev/sdk';
 import './App.css';
 
-const WebApp = tgSdk.default;
+// Берём WebApp напрямую из объекта window, куда его загружает скрипт Telegram.
+// Это навсегда уберёт ошибку "WebApp.ready is not a function"
+const WebApp = window.Telegram?.WebApp;
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false); // Состояние открытия корзины
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     if (WebApp) {
@@ -16,6 +17,7 @@ function App() {
       WebApp.expand();
     }
 
+    // Загрузка товаров из FakeStoreAPI
     fetch('https://fakestoreapi.com/products')
       .then((res) => res.json())
       .then((data) => {
@@ -28,7 +30,7 @@ function App() {
       });
   }, []);
 
-  // Добавление товара в корзину с учетом количества
+  // Добавление товара в корзину с подсчетом количества
   const addToCart = (product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
@@ -41,19 +43,17 @@ function App() {
     });
   };
 
-  // Получить количество конкретного товара в корзине
+  // Метод для получения количества конкретного товара
   const getProductQuantity = (productId) => {
     const item = cart.find((item) => item.id === productId);
     return item ? item.quantity : 0;
   };
 
-  // Общее количество товаров для иконки в хедере
+  // Подсчет общего числа товаров и итоговой суммы
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  
-  // Общая стоимость
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
 
-  // Отправка данных заказа в Telegram-бота
+  // Передача собранной корзины в чат боту
   const handleCheckout = () => {
     if (cart.length === 0) return;
 
@@ -67,8 +67,8 @@ function App() {
     };
 
     if (WebApp) {
-      WebApp.sendData(JSON.stringify(orderData));
-      WebApp.close();
+      WebApp.sendData(JSON.stringify(orderData)); // Отправляем данные боту
+      WebApp.close(); // Закрываем мини-приложение
     }
   };
 
@@ -76,9 +76,11 @@ function App() {
     return <div className="loading">Загрузка Shop-App...</div>;
   }
 
+  const username = WebApp?.initDataUnsafe?.user?.first_name || 'Гость';
+
   return (
     <div className="app-container">
-      {/* HEADER С КНОПКОЙ КОРЗИНЫ */}
+      {/* ХЕДЕР С КНОПКОЙ КОРЗИНЫ */}
       <header className="shop-header">
         <h1>Shop-App</h1>
         <button className="cart-header-btn" onClick={() => setIsCartOpen(true)}>
