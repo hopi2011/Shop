@@ -8,6 +8,7 @@ function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false); // Состояние открытия корзины
 
   useEffect(() => {
     if (WebApp) {
@@ -27,84 +28,131 @@ function App() {
       });
   }, []);
 
-  // Управление Главной кнопкой Telegram
-  useEffect(() => {
-    if (!WebApp || !WebApp.MainButton) return;
-
-    if (cart.length > 0) {
-      WebApp.MainButton.text = `Заказать (${cart.length} шт.)`;
-      WebApp.MainButton.show();
-    } else {
-      WebApp.MainButton.hide();
-    }
-  }, [cart]);
-
-  // Передача данных о корзине в бота при нажатии "Заказать"
-  useEffect(() => {
-    if (!WebApp || !WebApp.MainButton) return;
-
-    const handleMainButtonClick = () => {
-      // Собираем краткую информацию о заказе
-      const orderData = {
-        items: cart.map(item => ({ title: item.title, price: item.price })),
-        totalPrice: cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)
-      };
-
-      // Отправляем JSON-строку боту (работает только если бот запущен через Inline-кнопку)
-      WebApp.sendData(JSON.stringify(orderData));
-      WebApp.close(); // Закрываем Mini App после отправки
-    };
-
-    WebApp.MainButton.onClick(handleMainButtonClick);
-    return () => {
-      if (WebApp.MainButton) {
-        WebApp.MainButton.offClick(handleMainButtonClick);
-      }
-    };
-  }, [cart]);
-
+  // Добавление товара в корзину с учетом количества
   const addToCart = (product) => {
-    setCart([...cart, product]);
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
+  };
+
+  // Получить количество конкретного товара в корзине
+  const getProductQuantity = (productId) => {
+    const item = cart.find((item) => item.id === productId);
+    return item ? item.quantity : 0;
+  };
+
+  // Общее количество товаров для иконки в хедере
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  
+  // Общая стоимость
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+
+  // Отправка данных заказа в Telegram-бота
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+
+    const orderData = {
+      items: cart.map(item => ({
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity
+      })),
+      totalPrice: totalPrice
+    };
+
+    if (WebApp) {
+      WebApp.sendData(JSON.stringify(orderData));
+      WebApp.close();
+    }
   };
 
   if (loading) {
     return <div className="loading">Загрузка Shop-App...</div>;
   }
 
-  const username = WebApp?.initDataUnsafe?.user?.first_name || 'Гость';
-
   return (
     <div className="app-container">
+      {/* HEADER С КНОПКОЙ КОРЗИНЫ */}
       <header className="shop-header">
         <h1>Shop-App</h1>
-        <p>Привет, {username}!</p>
+        <button className="cart-header-btn" onClick={() => setIsCartOpen(true)}>
+          🛒 <span className="cart-badge">{totalItems}</span>
+        </button>
       </header>
 
+      {/* СЕТКА ТОВАРОВ */}
       <div className="products-grid">
-        {products.map((product) => (
-          <div key={product.id} className="product-card">
-            <div className="img-container">
-              {/* Добавлен crossOrigin и onError для исправления битых картинок */}
-              <img 
-                src={product.image} 
-                alt={product.title} 
-                crossOrigin="anonymous"
-                onError={(e) => {
-                  e.target.onerror = null; 
-                  e.target.src = "https://placehold.co/100x120?text=No+Image";
-                }}
-              />
+        {products.map((product) => {
+          const qty = getProductQuantity(product.id);
+          return (
+            <div key={product.id} className="product-card">
+              <div className="img-container">
+                <img 
+                  src={product.image} 
+                  alt={product.title} 
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = "https://placehold.co/100x120?text=No+Image";
+                  }}
+                />
+              </div>
+              <div className="product-info">
+                <h3 className="product-title">{product.title}</h3>
+                <p className="product-price">${product.price}</p>
+                <button className="buy-btn" onClick={() => addToCart(product)}>
+                  {qty > 0 ? `Добавить (${qty})` : 'Добавить'}
+                </button>
+              </div>
             </div>
-            <div className="product-info">
-              <h3 className="product-title">{product.title}</h3>
-              <p className="product-price">${product.price}</p>
-              <button className="buy-btn" onClick={() => addToCart(product)}>
-                Добавить
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* МОДАЛЬНОЕ ОКНО КОРЗИНЫ */}
+      {isCartOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Ваша корзина</h2>
+              <button className="close-btn" onClick={() => setIsCartOpen(false)}>✕</button>
+            </div>
+
+            {cart.length === 0 ? (
+              <p className="empty-cart-text">Корзина пуста 😔</p>
+            ) : (
+              <>
+                <div className="modal-items-list">
+                  {cart.map((item) => (
+                    <div key={item.id} className="modal-item">
+                      <img src={item.image} alt={item.title} className="modal-item-img" />
+                      <div className="modal-item-details">
+                        <h4>{item.title}</h4>
+                        <p>{item.quantity} шт. x ${item.price}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="modal-footer">
+                  <div className="total-price-box">
+                    <span>Итого:</span>
+                    <strong>${totalPrice}</strong>
+                  </div>
+                  <button className="checkout-btn" onClick={handleCheckout}>
+                    Оформить заказ
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
