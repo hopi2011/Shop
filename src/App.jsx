@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import tgSdk from '@twa-dev/sdk';
 import './App.css';
 
-// Исправляем импорт объекта WebApp из библиотеки
 const WebApp = tgSdk.default;
 
 function App() {
@@ -11,13 +10,11 @@ function App() {
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    // Безопасно инициализируем Telegram WebApp
     if (WebApp) {
       WebApp.ready();
       WebApp.expand();
     }
 
-    // Загружаем товары из FakeStoreAPI
     fetch('https://fakestoreapi.com/products')
       .then((res) => res.json())
       .then((data) => {
@@ -30,24 +27,32 @@ function App() {
       });
   }, []);
 
-  // Управление Главной кнопкой Telegram (MainButton)
+  // Управление Главной кнопкой Telegram
   useEffect(() => {
     if (!WebApp || !WebApp.MainButton) return;
 
     if (cart.length > 0) {
-      WebApp.MainButton.text = `Оформить заказ (${cart.length})`;
+      WebApp.MainButton.text = `Заказать (${cart.length} шт.)`;
       WebApp.MainButton.show();
     } else {
       WebApp.MainButton.hide();
     }
   }, [cart]);
 
-  // Обработчик клика по Главной кнопке Telegram
+  // Передача данных о корзине в бота при нажатии "Заказать"
   useEffect(() => {
     if (!WebApp || !WebApp.MainButton) return;
 
     const handleMainButtonClick = () => {
-      WebApp.showAlert(`Заказ оформлен! Всего товаров: ${cart.length}`);
+      // Собираем краткую информацию о заказе
+      const orderData = {
+        items: cart.map(item => ({ title: item.title, price: item.price })),
+        totalPrice: cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)
+      };
+
+      // Отправляем JSON-строку боту (работает только если бот запущен через Inline-кнопку)
+      WebApp.sendData(JSON.stringify(orderData));
+      WebApp.close(); // Закрываем Mini App после отправки
     };
 
     WebApp.MainButton.onClick(handleMainButtonClick);
@@ -63,16 +68,15 @@ function App() {
   };
 
   if (loading) {
-    return <div className="loading">Загрузка магазина...</div>;
+    return <div className="loading">Загрузка Shop-App...</div>;
   }
 
-  // Получаем имя пользователя, если открыто в ТГ, иначе пишем "Гость"
   const username = WebApp?.initDataUnsafe?.user?.first_name || 'Гость';
 
   return (
     <div className="app-container">
       <header className="shop-header">
-        <h1>Fake Store</h1>
+        <h1>Shop-App</h1>
         <p>Привет, {username}!</p>
       </header>
 
@@ -80,7 +84,16 @@ function App() {
         {products.map((product) => (
           <div key={product.id} className="product-card">
             <div className="img-container">
-              <img src={product.image} alt={product.title} />
+              {/* Добавлен crossOrigin и onError для исправления битых картинок */}
+              <img 
+                src={product.image} 
+                alt={product.title} 
+                crossOrigin="anonymous"
+                onError={(e) => {
+                  e.target.onerror = null; 
+                  e.target.src = "https://placehold.co/100x120?text=No+Image";
+                }}
+              />
             </div>
             <div className="product-info">
               <h3 className="product-title">{product.title}</h3>
