@@ -8,7 +8,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('Click / Payme'); // Способ оплаты по умолчанию
+  const [paymentMethod, setPaymentMethod] = useState('Click / Payme');
 
   useEffect(() => {
     if (WebApp) {
@@ -48,23 +48,48 @@ function App() {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
 
-  // Функция оформления: отправляет всё боту и закрывает окно
-  const handleCheckout = () => {
+  // НАДЕЖНЫЙ МЕТОД ОФОРМЛЕНИЯ ЗАКАЗА ЧЕРЕЗ ПРЯМОЙ URL СЕРВЕРА
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    const orderData = {
-      items: cart.map(item => ({
-        title: item.title,
-        price: item.price,
-        quantity: item.quantity
-      })),
-      totalPrice: totalPrice,
-      payment: paymentMethod // Передаем выбранный способ оплаты
-    };
+    // Получаем ID чата пользователя из данных инициализации Telegram
+    const chatId = WebApp?.initDataUnsafe?.user?.id;
+    
+    // Вставь сюда ТОКЕН СВОЕГО БОТА прямо строкой
+    const BOT_TOKEN = 'ТВОЙ_ТОКЕН_БОТА_СЮДА'; 
 
-    if (WebApp) {
-      WebApp.sendData(JSON.stringify(orderData)); // Отправка боту в чат
-      WebApp.close(); // Закрытие приложения
+    if (!chatId) {
+      alert('Ошибка: Не удалось получить ваш Telegram ID. Откройте приложение внутри Telegram!');
+      return;
+    }
+
+    // Формируем красивый текст чека для чата
+    let itemsList = '';
+    cart.forEach((item, index) => {
+      itemsList += `🔹 ${item.title} — ${item.quantity} шт.\n`;
+    });
+
+    const orderSummaryText = `🎉 **Заказ успешно оформлен!**\n\n🛒 **В Вашу корзину добавлены следующие вещи:**\n${itemsList}\n💳 **Способ оплаты:** ${paymentMethod}\n💰 **Итоговая стоимость:** $${totalPrice}\n\nСпасибо за покупку в Shop-App! Наш менеджер свяжется с Вами в ближайшее время.`;
+
+    try {
+      // Отправляем запрос напрямую в Telegram Bot API
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: orderSummaryText,
+          parse_mode: 'Markdown'
+        })
+      });
+
+      // Если запрос прошел успешно — закрываем приложение
+      if (WebApp) {
+        WebApp.close();
+      }
+    } catch (error) {
+      console.error('Ошибка отправки запроса к Bot API:', error);
+      alert('Произошла ошибка при отправке заказа. Попробуйте еще раз.');
     }
   };
 
@@ -133,7 +158,6 @@ function App() {
                   ))}
                 </div>
 
-                {/* ВЫБОР СПОСОБА ОПЛАТЫ ПРЯМО В МИНИ-ПРИЛОЖЕНИИ */}
                 <div className="payment-selection">
                   <label htmlFor="payment">Способ оплаты:</label>
                   <select 
