@@ -50,7 +50,42 @@ function App() {
 
   // НАДЕЖНЫЙ МЕТОД ОФОРМЛЕНИЯ ЗАКАЗА ЧЕРЕЗ ПРЯМОЙ URL СЕРВЕРА
   const handleCheckout = async () => {
-    if (cart.length === 0) return;
+if (cart.length === 0) return;
+
+try {
+const userId = WebApp?.initDataUnsafe?.user?.id;
+
+```
+const response = await fetch('http://localhost:3000/order', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    userId,
+    cart,
+    paymentMethod,
+    totalPrice
+  })
+});
+
+const data = await response.json();
+
+console.log(data);
+
+if (data.success) {
+  alert('Заказ оформлен!');
+  WebApp?.close();
+} else {
+  alert('Ошибка: ' + data.error);
+}
+```
+
+} catch (err) {
+console.error(err);
+alert('Ошибка соединения');
+}
+};
 
     // Получаем ID чата пользователя из данных инициализации Telegram
     const chatId = WebApp?.initDataUnsafe?.user?.id;
