@@ -1,3 +1,4 @@
+/* Переменные темы Telegram для поддержки темного и светлого режимов */
 :root {
   --bg-color: var(--tg-theme-bg-color, #ffffff);
   --text-color: var(--tg-theme-text-color, #222222);
@@ -17,9 +18,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Контейнер приложения */
 .app-container {
   width: 100%;
-  max-width: 800px; /* Ограничиваем максимальную ширину на планшетах */
+  max-width: 800px;
   margin: 0 auto;
   padding: 12px;
   box-sizing: border-box;
@@ -72,16 +74,15 @@ body {
   border-radius: 10px;
 }
 
-/* Умная адаптивная сетка товаров */
+/* Адаптивная сетка товаров */
 .products-grid {
   display: grid;
-  /* По умолчанию делает 2 колонки, но если экран совсем крошечный — выстроит в 1 */
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
   padding-bottom: 30px;
 }
 
-/* Адаптивная Карточка товара */
+/* Карточка товара */
 .product-card {
   background: var(--secondary-bg);
   border-radius: 12px;
@@ -129,14 +130,6 @@ body {
   height: 32px;
 }
 
-/* Нижняя строка карточки */
-.product-footer-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 4px;
-}
-
 .product-price {
   margin: 0;
   font-size: 15px;
@@ -148,15 +141,14 @@ body {
   background: var(--button-color);
   color: var(--button-text-color);
   border: none;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-/* Оверлей Модального Окна */
+/* Оверлей модального окна */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -166,11 +158,11 @@ body {
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
-  align-items: flex-end; /* Снизу для телефонов */
+  align-items: flex-end;
   z-index: 1000;
 }
 
-/* Адаптивный контент Корзины */
+/* Контент корзины */
 .modal-content {
   background: var(--bg-color);
   width: 100%;
@@ -180,6 +172,12 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .modal-header h2 { margin: 0; font-size: 18px; }
@@ -228,11 +226,41 @@ body {
 
 .modal-item-details p { margin: 2px 0 0 0; font-size: 12px; color: var(--hint-color); }
 
+/* --- БЛОК ВЫБОРА ОПЛАТЫ В КОРЗИНЕ --- */
+.payment-selection {
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-selection label { 
+  font-size: 13px; 
+  color: var(--hint-color); 
+  font-weight: 600; 
+}
+
+.payment-select {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--secondary-bg);
+  color: var(--text-color);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 14px;
+  outline: none;
+}
+
+/* Футер корзины */
 .total-price-box {
   display: flex;
   justify-content: space-between;
   font-size: 15px;
-  margin: 12px 0;
+  margin-bottom: 12px;
+}
+
+.total-price-box strong {
+  color: var(--link-color);
+  font-size: 17px;
 }
 
 .checkout-btn {
@@ -250,20 +278,18 @@ body {
 .empty-cart-text { text-align: center; color: var(--hint-color); padding: 30px 0; }
 .loading { text-align: center; margin-top: 80px; color: var(--hint-color); }
 
-/* --- МЕДИА-ЗАПРОСЫ ДЛЯ БОЛЬШИХ ЭКРАНОВ (Responsive) --- */
+/* --- RESPONSIVE СТИЛИ ДЛЯ БОЛЬШИХ ЭКРАНОВ --- */
 @media (min-width: 480px) {
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); /* Увеличиваем карточки, если экран шире */
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
     gap: 16px;
   }
   .product-card { padding: 12px; }
   .img-container { height: 140px; }
   .product-title { font-size: 14px; height: 36px; }
-  .buy-btn { font-size: 13px; padding: 7px 12px; }
 }
 
 @media (min-width: 650px) {
-  /* На планшетах или ПК модальное окно корзины центрируется, а не прижимается к низу */
   .modal-overlay {
     align-items: center;
     padding: 20px;
@@ -272,6 +298,5 @@ body {
     width: 450px;
     border-radius: 12px;
     max-height: 60vh;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
 }
