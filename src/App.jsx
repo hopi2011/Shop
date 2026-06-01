@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 
-// Берём WebApp напрямую из объекта window, куда его загружает скрипт Telegram.
-// Это навсегда уберёт ошибку "WebApp.ready is not a function"
+// Надежное получение WebApp напрямую из window
 const WebApp = window.Telegram?.WebApp;
 
 function App() {
@@ -17,7 +16,6 @@ function App() {
       WebApp.expand();
     }
 
-    // Загрузка товаров из FakeStoreAPI
     fetch('https://fakestoreapi.com/products')
       .then((res) => res.json())
       .then((data) => {
@@ -30,7 +28,6 @@ function App() {
       });
   }, []);
 
-  // Добавление товара в корзину с подсчетом количества
   const addToCart = (product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
@@ -43,17 +40,15 @@ function App() {
     });
   };
 
-  // Метод для получения количества конкретного товара
   const getProductQuantity = (productId) => {
     const item = cart.find((item) => item.id === productId);
     return item ? item.quantity : 0;
   };
 
-  // Подсчет общего числа товаров и итоговой суммы
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
 
-  // Передача собранной корзины в чат боту
+  // Единственная функция для отправки заказа
   const handleCheckout = () => {
     if (cart.length === 0) return;
 
@@ -68,7 +63,7 @@ function App() {
 
     if (WebApp) {
       WebApp.sendData(JSON.stringify(orderData)); // Отправляем данные боту
-      WebApp.close(); // Закрываем мини-приложение
+      WebApp.close(); // Закрываем Mini App
     }
   };
 
@@ -76,11 +71,8 @@ function App() {
     return <div className="loading">Загрузка Shop-App...</div>;
   }
 
-  const username = WebApp?.initDataUnsafe?.user?.first_name || 'Гость';
-
   return (
     <div className="app-container">
-      {/* ХЕДЕР С КНОПКОЙ КОРЗИНЫ */}
       <header className="shop-header">
         <h1>Shop-App</h1>
         <button className="cart-header-btn" onClick={() => setIsCartOpen(true)}>
@@ -88,7 +80,6 @@ function App() {
         </button>
       </header>
 
-      {/* СЕТКА ТОВАРОВ */}
       <div className="products-grid">
         {products.map((product) => {
           const qty = getProductQuantity(product.id);
@@ -117,7 +108,6 @@ function App() {
         })}
       </div>
 
-      {/* МОДАЛЬНОЕ ОКНО КОРЗИНЫ */}
       {isCartOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
