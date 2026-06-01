@@ -1,137 +1,335 @@
-/* Кнопка корзины в Хедере */
+/* Переменные темы Telegram для автоматической поддержки темного/светлого режима */
+:root {
+  --bg-color: var(--tg-theme-bg-color, #ffffff);
+  --text-color: var(--tg-theme-text-color, #222222);
+  --hint-color: var(--tg-theme-hint-color, #707579);
+  --link-color: var(--tg-theme-link-color, #248bed);
+  --button-color: var(--tg-theme-button-color, #248bed);
+  --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+  --secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Контейнер всего приложения */
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Фиксированный Хедер */
 .shop-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding-bottom: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
 }
 
+.shop-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.shop-header p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: var(--hint-color);
+}
+
+/* Кнопка Корзины в Хедере */
 .cart-header-btn {
-  background: var(--tg-theme-button-color, #248bed);
-  color: white;
+  background: var(--button-color);
+  color: var(--button-text-color);
   border: none;
-  padding: 8px 16px;
+  padding: 10px 16px;
   border-radius: 20px;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  position: relative;
+  gap: 6px;
+  transition: transform 0.1s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-header-btn:active {
+  transform: scale(0.96);
 }
 
 .cart-badge {
   background: #ff4d4d;
   color: white;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
   border-radius: 10px;
+  min-width: 10px;
+  text-align: center;
 }
 
-/* Модальное окно (Оверлей) */
+/* Сетка товаров (2 колонки) */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding-bottom: 40px;
+}
+
+/* Карточка товара */
+.product-card {
+  background: var(--secondary-bg);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* Блок с изображением */
+.img-container {
+  width: 100%;
+  height: 130px;
+  background: #ffffff;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.img-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Информация внутри карточки */
+.product-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+
+.product-title {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 36px; /* Ограничение высоты текста, чтобы кнопки были в один ряд */
+}
+
+.product-price {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--link-color);
+}
+
+/* Кнопка "Добавить" */
+.buy-btn {
+  background: var(--button-color);
+  color: var(--button-text-color);
+  border: none;
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.buy-btn:active {
+  opacity: 0.85;
+}
+
+/* Оверлей Модального Окна (Задний фон) */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
-  align-items: flex-end; /* Окно будет плавно выезжать снизу, как в ТГ */
+  align-items: flex-end; /* Окно крепится к низу экрана, как в ТГ */
   z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
 }
 
+/* Контент Модального Окна */
 .modal-content {
-  background: var(--tg-theme-bg-color, #fff);
-  color: var(--tg-theme-text-color, #000);
+  background: var(--bg-color);
   width: 100%;
-  max-height: 80vh;
-  border-radius: 20px 20px 0 0;
+  max-width: 600px;
+  max-height: 75vh;
+  border-radius: 16px 16px 0 0;
   padding: 20px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.25s cubic-bezier(0.1, 0.7, 0.1, 1);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
-.modal-header h2 { margin: 0; font-size: 20px; }
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
 
 .close-btn {
-  background: none;
+  background: var(--secondary-bg);
   border: none;
-  font-size: 20px;
-  color: var(--tg-theme-hint-color, #999);
+  font-size: 14px;
+  font-weight: bold;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-color);
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+/* Текст пустой корзины */
 .empty-cart-text {
   text-align: center;
   padding: 40px 0;
-  color: var(--tg-theme-hint-color, #999);
+  color: var(--hint-color);
+  font-size: 15px;
 }
 
+/* Список элементов в корзине */
 .modal-items-list {
   overflow-y: auto;
   flex-grow: 1;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  padding-right: 4px;
 }
 
 .modal-item {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modal-item-img {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  background: white;
-  border-radius: 4px;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-item-details {
+  flex-grow: 1;
 }
 
 .modal-item-details h4 {
-  margin: 0 0 5px 0;
+  margin: 0 0 4px 0;
   font-size: 14px;
+  font-weight: 600;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.modal-item-details p { margin: 0; font-size: 12px; color: var(--tg-theme-hint-color, #777); }
+.modal-item-details p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--hint-color);
+}
 
+/* Футер корзины */
 .modal-footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  padding-top: 15px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 14px;
 }
 
 .total-price-box {
   display: flex;
   justify-content: space-between;
-  font-size: 18px;
-  margin-bottom: 15px;
+  font-size: 16px;
+  margin-bottom: 14px;
+  color: var(--text-color);
 }
 
+.total-price-box strong {
+  font-size: 18px;
+  color: var(--link-color);
+}
+
+/* Кнопка "Оформить заказ" */
 .checkout-btn {
-  background: #4caf50; /* Зеленая кнопка оформления */
+  background: #34c759; /* Красивый зеленый цвет для успешного действия */
   color: white;
   border: none;
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 14px;
+  border-radius: 12px;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 10px rgba(52, 199, 89, 0.2);
+}
+
+.checkout-btn:active {
+  opacity: 0.9;
+}
+
+.loading {
+  text-align: center;
+  margin-top: 100px;
+  font-size: 16px;
+  color: var(--hint-color);
+  font-weight: 500;
+}
+
+/* Анимации появления */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
